@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Complimentary System - Mobile & Cloud Sync</title>
+    <title>Complimentary System - Bulky & Individual Ticket</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Alpine.js -->
@@ -20,7 +20,7 @@
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans antialiased" x-data="workflowApp()" x-init="fetchData()">
 
-    <!-- Header / Navbar Responsive -->
+    <!-- Header / Navbar -->
     <header class="no-print bg-slate-900 text-white shadow-md p-4 mb-4 md:mb-6">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
             <div>
@@ -30,7 +30,7 @@
             <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
                 <span class="text-[10px] bg-slate-800 px-2.5 py-1 rounded-full text-slate-300" x-text="isLoading ? '⏳ Sync...' : '☁️ Cloud Connected'"></span>
                 <button @click="currentView = 'dashboard'" :class="currentView === 'dashboard' ? 'bg-blue-600' : 'bg-slate-700'" class="px-3 py-1.5 rounded-lg text-xs font-medium transition">📋 Dashboard</button>
-                <button @click="openModalCreate()" class="bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-lg text-xs font-medium transition">➕ Buat Baru</button>
+                <button @click="openModalCreate()" class="bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-lg text-xs font-medium transition">➕ Buat Bulky Baru</button>
             </div>
         </div>
     </header>
@@ -42,24 +42,23 @@
         <div x-show="currentView === 'dashboard'" class="space-y-4">
             <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3">
                 <div>
-                    <h2 class="text-base sm:text-lg font-bold text-slate-900">Daftar Pengajuan Compli</h2>
-                    <p class="text-xs text-slate-500">Kelola tiket bulky dan status persetujuan.</p>
+                    <h2 class="text-base sm:text-lg font-bold text-slate-900">Daftar Pengajuan Ticket Bulky</h2>
+                    <p class="text-xs text-slate-500">Rekapitulasi pengajuan comply beserta tiket individual di dalamnya.</p>
                 </div>
                 <div class="w-full sm:w-1/3 flex gap-2">
-                    <input type="text" x-model="searchQuery" placeholder="Cari No Tiket / Nama..." class="w-full px-3 py-1.5 border rounded-lg text-xs focus:ring-2 focus:ring-blue-500">
+                    <input type="text" x-model="searchQuery" placeholder="Cari No Bulky / Nama..." class="w-full px-3 py-1.5 border rounded-lg text-xs focus:ring-2 focus:ring-blue-500">
                     <button @click="fetchData()" class="bg-slate-200 hover:bg-slate-300 px-3 py-1.5 rounded-lg text-xs font-semibold">🔄</button>
                 </div>
             </div>
 
-            <!-- Responsive Table / Card List untuk Mobile -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full border-collapse text-xs">
                         <thead>
                             <tr class="bg-slate-100 text-slate-900 text-left">
-                                <th class="p-3">No. Tiket</th>
+                                <th class="p-3">No. Ticket Bulky</th>
                                 <th class="p-3 text-center">Tanggal</th>
-                                <th class="p-3 text-center">Item</th>
+                                <th class="p-3 text-center">Jml Pelanggan</th>
                                 <th class="p-3 text-right">Total Nominal</th>
                                 <th class="p-3 text-center">Status</th>
                                 <th class="p-3 text-center">Aksi</th>
@@ -70,7 +69,7 @@
                                 <tr class="border-t border-slate-200 hover:bg-slate-50">
                                     <td class="p-3 font-mono font-bold text-blue-700" x-text="ticket.ticketNumber"></td>
                                     <td class="p-3 text-center" x-text="ticket.requestDate"></td>
-                                    <td class="p-3 text-center font-semibold" x-text="ticket.items.length + ' Org'"></td>
+                                    <td class="p-3 text-center font-semibold" x-text="ticket.items.length + ' Orang'"></td>
                                     <td class="p-3 text-right font-semibold" x-text="formatRupiah(ticketTotal(ticket))"></td>
                                     <td class="p-3 text-center">
                                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
@@ -90,7 +89,7 @@
                             </template>
                             <template x-if="filteredTickets.length === 0">
                                 <tr>
-                                    <td colspan="6" class="p-6 text-center text-slate-500" x-text="isLoading ? 'Memuat data...' : 'Belum ada data pengajuan.'"></td>
+                                    <td colspan="6" class="p-6 text-center text-slate-500" x-text="isLoading ? 'Memuat data...' : 'Belum ada data pengajuan bulky.'"></td>
                                 </tr>
                             </template>
                         </tbody>
@@ -99,7 +98,7 @@
             </div>
         </div>
 
-        <!-- VIEW 2: DETAIL & WORKFLOW (Mobile Friendly Form) -->
+        <!-- VIEW 2: DETAIL DOKUMEN & WORKFLOW -->
         <div x-show="currentView === 'detail'" class="space-y-4">
             <div class="no-print flex flex-col sm:flex-row justify-between items-center bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 gap-3">
                 <button @click="currentView = 'dashboard'" class="w-full sm:w-auto bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold">⬅️ Kembali</button>
@@ -109,7 +108,7 @@
                 </div>
             </div>
 
-            <!-- Dokumen Cetak (Responsif & Putih Bersih) -->
+            <!-- Dokumen Cetak Sesuai Header Gambar Anda -->
             <div class="print-area bg-white p-4 sm:p-10 shadow-lg rounded-xl border border-slate-200 overflow-x-auto" x-if="activeTicket">
                 <div class="border-b-2 border-slate-800 pb-3 mb-4">
                     <h2 class="text-xs sm:text-sm font-semibold tracking-wide text-slate-600">PT. Cyberindo Aditama</h2>
@@ -117,22 +116,23 @@
                 </div>
 
                 <div class="grid grid-cols-1 text-xs sm:text-sm mb-4 gap-1">
-                    <p><span class="font-semibold inline-block w-20">To</span> : Billing & Collection</p>
-                    <p><span class="font-semibold inline-block w-20">From</span> : CRT</p>
-                    <p><span class="font-semibold inline-block w-20">Date</span> : <span x-text="activeTicket?.requestDate"></span></p>
+                    <p><span class="font-semibold inline-block w-24">To</span> : Billing & Collection</p>
+                    <p><span class="font-semibold inline-block w-24">From</span> : CRT</p>
+                    <p><span class="font-semibold inline-block w-24">Date</span> : <span x-text="activeTicket?.requestDate"></span></p>
                 </div>
 
-                <!-- Tabel Data Item Responsif -->
+                <!-- Tabel Sesuai Header Pilihan Anda -->
                 <div class="overflow-x-auto mb-6">
-                    <table class="w-full min-w-[600px] border-collapse border border-slate-400 text-[11px] sm:text-xs">
+                    <table class="w-full min-w-[750px] border-collapse border border-slate-400 text-[11px] sm:text-xs">
                         <thead>
                             <tr class="bg-slate-100 text-slate-900 text-center">
                                 <th class="border border-slate-400 p-2 w-8">No</th>
                                 <th class="border border-slate-400 p-2">Full Name</th>
                                 <th class="border border-slate-400 p-2">Case / CRT ID</th>
-                                <th class="border border-slate-400 p-2">Username / ID</th>
+                                <th class="border border-slate-400 p-2">Username / Cust ID</th>
                                 <th class="border border-slate-400 p-2">Ticket Number</th>
                                 <th class="border border-slate-400 p-2">Subject</th>
+                                <th class="border border-slate-400 p-2">Note</th>
                                 <th class="border border-slate-400 p-2">Adjustment</th>
                             </tr>
                         </thead>
@@ -143,8 +143,9 @@
                                     <td class="border border-slate-400 p-2 font-medium" x-text="item.fullName"></td>
                                     <td class="border border-slate-400 p-2" x-text="item.caseType"></td>
                                     <td class="border border-slate-400 p-2 text-center" x-text="item.username"></td>
-                                    <td class="border border-slate-400 p-2 text-center" x-text="activeTicket.ticketNumber"></td>
+                                    <td class="border border-slate-400 p-2 text-center font-mono text-blue-700" x-text="item.ticketNumberItem"></td>
                                     <td class="border border-slate-400 p-2" x-text="item.subject"></td>
+                                    <td class="border border-slate-400 p-2 text-center" x-text="item.note || '-'"></td>
                                     <td class="border border-slate-400 p-2 text-right font-semibold" x-text="formatRupiah(item.adjustment)"></td>
                                 </tr>
                             </template>
@@ -153,10 +154,10 @@
                 </div>
 
                 <p class="text-[11px] sm:text-xs italic text-slate-700 mb-6">
-                    Informasi permohonan adjustment mencakup prorate tagihan dan penghapusan tagihan karena tidak ada pemakaian (No traffic).
+                    Informasi permohonan adjustment mencakup prorate tagihan, penghapusan tagihan, dan refund dana.
                 </p>
 
-                <!-- Tanda Tangan Berjenjang (Grid Stack di Mobile) -->
+                <!-- Tanda Tangan Berjenjang (Putih Bersih) -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4 border-t border-slate-200 text-center text-xs">
                     
                     <!-- Request by -->
@@ -213,14 +214,14 @@
 
     </main>
 
-    <!-- MODAL BUAT / EDIT -->
+    <!-- MODAL BUAT / EDIT BULKY -->
     <div x-show="isModalCreateOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 z-50 no-print" x-cloak>
         <div class="bg-white rounded-xl max-w-xl w-full p-4 sm:p-6 shadow-xl max-h-[90vh] overflow-y-auto space-y-4">
-            <h3 class="text-base sm:text-lg font-bold" x-text="isEditTicketMode ? 'Edit Tiket Bulky' : 'Buat Compli Baru'"></h3>
+            <h3 class="text-base sm:text-lg font-bold" x-text="isEditTicketMode ? 'Edit Tiket Bulky' : 'Buat Ticket Bulky Baru'"></h3>
             
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-xs font-semibold mb-1">No. Tiket (Auto)</label>
+                    <label class="block text-xs font-semibold mb-1">No. Ticket Bulky (Auto)</label>
                     <input type="text" x-model="newTicket.ticketNumber" readonly class="w-full border bg-slate-100 rounded-lg p-2 text-xs font-mono text-blue-700 font-bold">
                 </div>
                 <div>
@@ -230,21 +231,23 @@
             </div>
 
             <div class="border-t pt-3">
-                <h4 class="font-bold text-xs text-slate-700 mb-2">Data Pelanggan</h4>
+                <h4 class="font-bold text-xs text-slate-700 mb-2">Input Data Pelanggan</h4>
                 <div class="space-y-2.5 bg-slate-50 p-3 sm:p-4 rounded-lg border">
-                    <div>
-                        <label class="block text-xs font-medium">Full Name</label>
-                        <input type="text" x-model="tempItem.fullName" class="w-full border rounded-lg p-1.5 text-xs">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium">Case / CRT ID</label>
-                        <select x-model="tempItem.caseType" class="w-full border rounded-lg p-1.5 text-xs">
-                            <option value="">-- Pilih Kategori --</option>
-                            <option value="Hapus Tagihan – Tutup Akun">Hapus Tagihan – Tutup Akun</option>
-                            <option value="Refund Tagihan – Tutup Akun">Refund Tagihan – Tutup Akun</option>
-                            <option value="Prorate Tagihan – Lanjut Akun">Prorate Tagihan – Lanjut Akun</option>
-                            <option value="Revisi Tagihan Promo">Revisi Tagihan Promo</option>
-                        </select>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-xs font-medium">Full Name</label>
+                            <input type="text" x-model="tempItem.fullName" class="w-full border rounded-lg p-1.5 text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium">Case / CRT ID</label>
+                            <select x-model="tempItem.caseType" class="w-full border rounded-lg p-1.5 text-xs">
+                                <option value="">-- Pilih Kategori --</option>
+                                <option value="Hapus Tagihan – Tutup Akun">Hapus Tagihan – Tutup Akun</option>
+                                <option value="Refund Tagihan – Tutup Akun">Refund Tagihan – Tutup Akun</option>
+                                <option value="Prorate Tagihan – Lanjut Akun">Prorate Tagihan – Lanjut Akun</option>
+                                <option value="Revisi Tagihan Promo">Revisi Tagihan Promo</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <div>
@@ -252,15 +255,25 @@
                             <input type="text" x-model="tempItem.username" class="w-full border rounded-lg p-1.5 text-xs">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium">Adjustment (Rp)</label>
-                            <input type="number" x-model="tempItem.adjustment" class="w-full border rounded-lg p-1.5 text-xs">
+                            <label class="block text-xs font-medium">Ticket Number (Individual)</label>
+                            <input type="text" x-model="tempItem.ticketNumberItem" placeholder="Contoh: 263740-1371" class="w-full border rounded-lg p-1.5 text-xs">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-xs font-medium">Subject</label>
+                            <input type="text" x-model="tempItem.subject" class="w-full border rounded-lg p-1.5 text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium">Note</label>
+                            <input type="text" x-model="tempItem.note" class="w-full border rounded-lg p-1.5 text-xs" placeholder="Opsional...">
                         </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium">Subject</label>
-                        <input type="text" x-model="tempItem.subject" class="w-full border rounded-lg p-1.5 text-xs">
+                        <label class="block text-xs font-medium">Adjustment (Rp)</label>
+                        <input type="number" x-model="tempItem.adjustment" class="w-full border rounded-lg p-1.5 text-xs">
                     </div>
-                    <button type="button" @click="saveItemToDraft()" class="w-full bg-slate-800 text-white py-2 rounded-lg text-xs" x-text="editingItemIndex !== null ? 'Simpan Perubahan' : '➕ Masukkan ke Daftar'"></button>
+                    <button type="button" @click="saveItemToDraft()" class="w-full bg-slate-800 text-white py-2 rounded-lg text-xs" x-text="editingItemIndex !== null ? 'Simpan Perubahan Item' : '➕ Masukkan ke Daftar Bulky'"></button>
                 </div>
             </div>
 
@@ -270,7 +283,7 @@
                     <template x-for="(it, idx) in newTicket.items" :key="idx">
                         <div class="flex justify-between items-center py-1.5 px-2 bg-slate-50 rounded">
                             <div>
-                                <p class="font-bold" x-text="it.fullName"></p>
+                                <p class="font-bold" x-text="it.fullName + ' (' + it.ticketNumberItem + ')'"></p>
                                 <p class="text-[10px]" x-text="it.caseType + ' | ' + formatRupiah(it.adjustment)"></p>
                             </div>
                             <div class="flex gap-1">
@@ -289,7 +302,7 @@
         </div>
     </div>
 
-    <!-- MODAL TTD DIGITAL (Balpoin / Upload) -->
+    <!-- MODAL TTD DIGITAL -->
     <div x-show="isSignModalOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 z-50 no-print" x-cloak>
         <div class="bg-white rounded-xl max-w-md w-full p-4 sm:p-6 shadow-xl space-y-3">
             <div>
@@ -302,7 +315,6 @@
                 <button type="button" @click="signMethod = 'upload'" :class="signMethod === 'upload' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-slate-500'" class="pb-2 w-1/2 text-center">📁 Upload Gambar</button>
             </div>
 
-            <!-- Metode 1: Gambar Manual -->
             <div x-show="signMethod === 'draw'">
                 <div class="border-2 border-dashed border-slate-300 rounded-lg bg-white mb-2 overflow-hidden">
                     <canvas id="signCanvas" width="360" height="140" class="w-full cursor-crosshair"></canvas>
@@ -313,7 +325,6 @@
                 </div>
             </div>
 
-            <!-- Metode 2: Upload File -->
             <div x-show="signMethod === 'upload'" class="space-y-3">
                 <input type="file" accept="image/*" @change="handleFileUpload($event)" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700">
                 <div class="h-28 border border-dashed border-slate-300 rounded-lg flex items-center justify-center bg-white overflow-hidden">
@@ -358,7 +369,7 @@
                 activeTicket: null,
 
                 newTicket: { ticketNumber: '', requestDate: '', items: [] },
-                tempItem: { fullName: '', caseType: '', username: '', subject: '', adjustment: '' },
+                tempItem: { fullName: '', caseType: '', username: '', ticketNumberItem: '', subject: '', note: '', adjustment: '' },
 
                 async fetchData() {
                     this.isLoading = true;
@@ -383,7 +394,7 @@
                     let q = this.searchQuery.toLowerCase();
                     return this.tickets.filter(t => 
                         t.ticketNumber.toLowerCase().includes(q) ||
-                        t.items.some(i => i.fullName.toLowerCase().includes(q))
+                        t.items.some(i => i.fullName.toLowerCase().includes(q) || i.ticketNumberItem.toLowerCase().includes(q))
                     );
                 },
 
@@ -419,13 +430,13 @@
                 },
 
                 resetTempItem() {
-                    this.tempItem = { fullName: '', caseType: '', username: '', subject: '', adjustment: '' };
+                    this.tempItem = { fullName: '', caseType: '', username: '', ticketNumberItem: '', subject: '', note: '', adjustment: '' };
                     this.editingItemIndex = null;
                 },
 
                 saveItemToDraft() {
-                    if (!this.tempItem.fullName || !this.tempItem.adjustment) {
-                        alert('Nama dan nominal wajib diisi.');
+                    if (!this.tempItem.fullName || !this.tempItem.adjustment || !this.tempItem.ticketNumberItem) {
+                        alert('Nama, Ticket Number individual, dan nominal wajib diisi.');
                         return;
                     }
                     if (this.editingItemIndex !== null) {
@@ -447,7 +458,6 @@
                         return;
                     }
 
-                    // Pertahankan signatures lama jika sedang mode edit agar TTD tidak terhapus
                     let existingSignatures = {
                         request: { image: null, timestamp: null },
                         acknowledge: { image: null, timestamp: null },
