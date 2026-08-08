@@ -3,29 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Complimentary System - Bulky & Individual Ticket</title>
+    <title>Complimentary System - Full Screen A4 Landscape</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
+        @page {
+            size: A4 landscape;
+            margin: 8mm;
+        }
         @media print {
-            body { background-color: white; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+            body { background-color: #ffffff !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
             .no-print { display: none !important; }
-            .print-area { box-shadow: none !important; margin: 0 !important; width: 100% !important; max-width: 100% !important; }
+            .print-area { box-shadow: none !important; margin: 0 !important; width: 100% !important; max-width: 100% !important; border: none !important; padding: 0 !important; background-color: #ffffff !important; }
             canvas { border: none !important; }
         }
         canvas { touch-action: none; }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 font-sans antialiased" x-data="workflowApp()" x-init="fetchData()">
+<body class="bg-white text-slate-800 font-sans antialiased" x-data="workflowApp()" x-init="fetchData()">
 
     <!-- Header / Navbar -->
-    <header class="no-print bg-slate-900 text-white shadow-md p-4 mb-4 md:mb-6">
-        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
+    <header class="no-print bg-slate-900 text-white shadow-md p-4 mb-4">
+        <div class="max-w-full px-4 flex flex-col sm:flex-row justify-between items-center gap-3">
             <div>
                 <h1 class="text-base sm:text-xl font-bold">PT. Cyberindo Aditama</h1>
-                <p class="text-[11px] text-slate-400">Workflow Compli & Mobile E-Sign</p>
+                <p class="text-[11px] text-slate-400">Workflow Compli & Full Screen View</p>
             </div>
             <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
                 <span class="text-[10px] bg-slate-800 px-2.5 py-1 rounded-full text-slate-300" x-text="isLoading ? '⏳ Sync...' : '☁️ Cloud Connected'"></span>
@@ -35,15 +39,15 @@
         </div>
     </header>
 
-    <!-- Konten Utama -->
-    <main class="max-w-7xl mx-auto px-2 sm:px-4 mb-12">
+    <!-- Konten Utama Full Screen -->
+    <main class="w-full px-2 sm:px-6 mb-12">
 
         <!-- VIEW 1: DASHBOARD -->
-        <div x-show="currentView === 'dashboard'" class="space-y-4">
+        <div x-show="currentView === 'dashboard'" class="space-y-4 max-w-7xl mx-auto">
             <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3">
                 <div>
                     <h2 class="text-base sm:text-lg font-bold text-slate-900">Daftar Pengajuan Ticket Bulky</h2>
-                    <p class="text-xs text-slate-500">Rekapitulasi pengajuan comply beserta tiket individual di dalamnya.</p>
+                    <p class="text-xs text-slate-500">Kelola pengajuan comply beserta format tanda tangan 3 atau 4 approval.</p>
                 </div>
                 <div class="w-full sm:w-1/3 flex gap-2">
                     <input type="text" x-model="searchQuery" placeholder="Cari No Bulky / Nama..." class="w-full px-3 py-1.5 border rounded-lg text-xs focus:ring-2 focus:ring-blue-500">
@@ -58,6 +62,7 @@
                             <tr class="bg-slate-100 text-slate-900 text-left">
                                 <th class="p-3">No. Ticket Bulky</th>
                                 <th class="p-3 text-center">Tanggal</th>
+                                <th class="p-3 text-center">Tipe Approval</th>
                                 <th class="p-3 text-center">Jml Pelanggan</th>
                                 <th class="p-3 text-right">Total Nominal</th>
                                 <th class="p-3 text-center">Status</th>
@@ -68,15 +73,15 @@
                             <template x-for="ticket in filteredTickets" :key="ticket.ticketNumber">
                                 <tr class="border-t border-slate-200 hover:bg-slate-50">
                                     <td class="p-3 font-mono font-bold text-blue-700" x-text="ticket.ticketNumber"></td>
-                                    <td class="p-3 text-center" x-text="ticket.requestDate"></td>
+                                    <td class="p-3 text-center" x-text="formatDateDisplay(ticket.requestDate)"></td>
+                                    <td class="p-3 text-center font-semibold text-slate-600" x-text="ticket.approvalType + ' Approval'"></td>
                                     <td class="p-3 text-center font-semibold" x-text="ticket.items.length + ' Orang'"></td>
                                     <td class="p-3 text-right font-semibold" x-text="formatRupiah(ticketTotal(ticket))"></td>
                                     <td class="p-3 text-center">
                                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
                                             :class="{
                                                 'bg-amber-100 text-amber-800': ticket.status === 'Progress',
-                                                'bg-blue-100 text-blue-800': ticket.status === 'Approved 1',
-                                                'bg-indigo-100 text-indigo-800': ticket.status === 'Final Approved',
+                                                'bg-blue-100 text-blue-800': ticket.status.includes('Approved'),
                                                 'bg-emerald-100 text-emerald-800': ticket.status === 'Finish'
                                             }"
                                             x-text="ticket.status">
@@ -89,7 +94,7 @@
                             </template>
                             <template x-if="filteredTickets.length === 0">
                                 <tr>
-                                    <td colspan="6" class="p-6 text-center text-slate-500" x-text="isLoading ? 'Memuat data...' : 'Belum ada data pengajuan bulky.'"></td>
+                                    <td colspan="7" class="p-6 text-center text-slate-500" x-text="isLoading ? 'Memuat data...' : 'Belum ada data pengajuan bulky.'"></td>
                                 </tr>
                             </template>
                         </tbody>
@@ -98,117 +103,198 @@
             </div>
         </div>
 
-        <!-- VIEW 2: DETAIL DOKUMEN & WORKFLOW -->
-        <div x-show="currentView === 'detail'" class="space-y-4">
-            <div class="no-print flex flex-col sm:flex-row justify-between items-center bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 gap-3">
+        <!-- VIEW 2: DETAIL DOKUMEN FULL SCREEN -->
+        <div x-show="currentView === 'detail'" class="space-y-4 w-full">
+            <div class="no-print flex flex-col sm:flex-row justify-between items-center bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 gap-3 max-w-full">
                 <button @click="currentView = 'dashboard'" class="w-full sm:w-auto bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold">⬅️ Kembali</button>
                 <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
                     <button @click="openModalEditTicket(activeTicket)" class="flex-1 sm:flex-none bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold">✏️ Edit Data</button>
-                    <button @click="printDocument()" :disabled="!isAllSigned" :class="isAllSigned ? 'bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer' : 'bg-slate-300 text-slate-500 cursor-not-allowed'" class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-bold transition">🖨️ Cetak / Finish</button>
+                    <button @click="printDocument()" :disabled="!isAllSigned" :class="isAllSigned ? 'bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer' : 'bg-slate-300 text-slate-500 cursor-not-allowed'" class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-bold transition">🖨️ Cetak / Finish (Full Screen A4 Landscape)</button>
                 </div>
             </div>
 
-            <!-- Dokumen Cetak Sesuai Header Gambar Anda -->
-            <div class="print-area bg-white p-4 sm:p-10 shadow-lg rounded-xl border border-slate-200 overflow-x-auto" x-if="activeTicket">
+            <!-- Area Dokumen Full Screen (Background Putih Bersih) -->
+            <div class="print-area bg-white p-6 sm:p-10 shadow-lg rounded-xl border border-slate-200 w-full" x-if="activeTicket">
                 <div class="border-b-2 border-slate-800 pb-3 mb-4">
                     <h2 class="text-xs sm:text-sm font-semibold tracking-wide text-slate-600">PT. Cyberindo Aditama</h2>
-                    <h1 class="text-xl sm:text-3xl font-serif font-bold text-center text-slate-900 my-2">Complimentary User Account Form</h1>
+                    <h1 class="text-xl sm:text-2xl font-serif font-bold text-center text-slate-900 my-2">Complimentary User Account Form</h1>
                 </div>
 
-                <div class="grid grid-cols-1 text-xs sm:text-sm mb-4 gap-1">
-                    <p><span class="font-semibold inline-block w-24">To</span> : Billing & Collection</p>
-                    <p><span class="font-semibold inline-block w-24">From</span> : CRT</p>
-                    <p><span class="font-semibold inline-block w-24">Date</span> : <span x-text="activeTicket?.requestDate"></span></p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 text-xs sm:text-sm mb-4 gap-1">
+                    <div class="space-y-1">
+                        <p><span class="font-semibold inline-block w-24">To</span> : Billing & Collection</p>
+                        <p><span class="font-semibold inline-block w-24">From</span> : CRT</p>
+                        <p><span class="font-semibold inline-block w-24">Date</span> : <span x-text="formatDateDisplay(activeTicket?.requestDate)"></span></p>
+                    </div>
+                    <div class="no-print text-left sm:text-right">
+                        <span class="inline-block bg-slate-100 text-slate-800 text-xs px-3 py-1 rounded-full font-bold" x-text="activeTicket?.approvalType + ' Approval Mode'"></span>
+                    </div>
                 </div>
 
-                <!-- Tabel Sesuai Header Pilihan Anda -->
-                <div class="overflow-x-auto mb-6">
-                    <table class="w-full min-w-[750px] border-collapse border border-slate-400 text-[11px] sm:text-xs">
+                <!-- Tabel Item Full Width (Note Rata Kiri) -->
+                <div class="overflow-x-auto mb-6 w-full">
+                    <table class="w-full border-collapse border border-slate-800 text-[11px] sm:text-xs">
                         <thead>
                             <tr class="bg-slate-100 text-slate-900 text-center">
-                                <th class="border border-slate-400 p-2 w-8">No</th>
-                                <th class="border border-slate-400 p-2">Full Name</th>
-                                <th class="border border-slate-400 p-2">Case / CRT ID</th>
-                                <th class="border border-slate-400 p-2">Username / Cust ID</th>
-                                <th class="border border-slate-400 p-2">Ticket Number</th>
-                                <th class="border border-slate-400 p-2">Subject</th>
-                                <th class="border border-slate-400 p-2">Note</th>
-                                <th class="border border-slate-400 p-2">Adjustment</th>
+                                <th class="border border-slate-800 p-2 w-8">No</th>
+                                <th class="border border-slate-800 p-2">Full Name</th>
+                                <th class="border border-slate-800 p-2">Case / CRT ID</th>
+                                <th class="border border-slate-800 p-2">Username / Cust ID</th>
+                                <th class="border border-slate-800 p-2">Ticket Number</th>
+                                <th class="border border-slate-800 p-2">Subject</th>
+                                <th class="border border-slate-800 p-2 text-left">Note</th>
+                                <th class="border border-slate-800 p-2">Adjustment</th>
                             </tr>
                         </thead>
                         <tbody>
                             <template x-for="(item, index) in activeTicket?.items" :key="index">
                                 <tr class="hover:bg-slate-50">
-                                    <td class="border border-slate-400 p-2 text-center" x-text="index + 1"></td>
-                                    <td class="border border-slate-400 p-2 font-medium" x-text="item.fullName"></td>
-                                    <td class="border border-slate-400 p-2" x-text="item.caseType"></td>
-                                    <td class="border border-slate-400 p-2 text-center" x-text="item.username"></td>
-                                    <td class="border border-slate-400 p-2 text-center font-mono text-blue-700" x-text="item.ticketNumberItem"></td>
-                                    <td class="border border-slate-400 p-2" x-text="item.subject"></td>
-                                    <td class="border border-slate-400 p-2 text-center" x-text="item.note || '-'"></td>
-                                    <td class="border border-slate-400 p-2 text-right font-semibold" x-text="formatRupiah(item.adjustment)"></td>
+                                    <td class="border border-slate-800 p-2 text-center" x-text="index + 1"></td>
+                                    <td class="border border-slate-800 p-2 font-medium" x-text="item.fullName"></td>
+                                    <td class="border border-slate-800 p-2" x-text="item.caseType"></td>
+                                    <td class="border border-slate-800 p-2 text-center" x-text="item.username"></td>
+                                    <td class="border border-slate-800 p-2 text-center font-mono text-blue-700" x-text="item.ticketNumberItem"></td>
+                                    <td class="border border-slate-800 p-2" x-text="item.subject"></td>
+                                    <td class="border border-slate-800 p-2 text-left" x-text="item.note || '-'"></td>
+                                    <td class="border border-slate-800 p-2 text-right font-semibold" x-text="formatRupiah(item.adjustment)"></td>
                                 </tr>
                             </template>
                         </tbody>
                     </table>
                 </div>
 
-                <p class="text-[11px] sm:text-xs italic text-slate-700 mb-6">
+                <p class="text-[11px] sm:text-xs italic text-slate-700 mb-8">
                     Informasi permohonan adjustment mencakup prorate tagihan, penghapusan tagihan, dan refund dana.
                 </p>
 
-                <!-- Tanda Tangan Berjenjang (Putih Bersih) -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4 border-t border-slate-200 text-center text-xs">
-                    
-                    <!-- Request by -->
-                    <div class="p-2 sm:p-0">
-                        <p class="font-semibold mb-1">Retno Wulandari</p>
-                        <div class="h-20 flex items-center justify-center mb-1 bg-white relative overflow-hidden">
-                            <template x-if="activeTicket?.signatures.request.image">
-                                <img :src="activeTicket.signatures.request.image" class="max-h-full object-contain">
-                            </template>
-                            <template x-if="!activeTicket?.signatures.request.image">
-                                <span class="text-slate-300 text-[10px]">Belum TTD</span>
-                            </template>
-                        </div>
-                        <p class="text-[10px] text-slate-500 mb-1 h-4" x-text="activeTicket?.signatures.request.timestamp ? 'e-Sign: ' + activeTicket.signatures.request.timestamp : ''"></p>
-                        <button @click="openSignModal('request', 'Retno Wulandari')" class="no-print bg-slate-800 text-white px-3 py-1 rounded text-[11px] mb-2 hover:bg-slate-700 w-full sm:w-auto">✍️ TTD Request</button>
-                        <p class="border-t border-slate-400 pt-1 font-medium">Request by</p>
-                    </div>
+                <!-- TABEL TANDA TANGAN FULL WIDTH -->
+                <div class="mt-4 w-full">
+                    <table class="w-full border-collapse border border-slate-800 text-center text-xs">
+                        <thead>
+                            <tr>
+                                <th class="border border-slate-800 p-2 font-semibold bg-slate-50">Request by</th>
+                                <th class="border border-slate-800 p-2 font-semibold bg-slate-50">Acknowledged by</th>
+                                <th class="border border-slate-800 p-2 font-semibold bg-slate-50">Approved by</th>
+                                <template x-if="activeTicket?.approvalType === '4'">
+                                    <th class="border border-slate-800 p-2 font-semibold bg-slate-50">Approved by</th>
+                                </template>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <!-- Kolom 1: Retno Wulandari -->
+                                <td class="border border-slate-800 p-2 h-24 align-middle relative">
+                                    <template x-if="activeTicket?.signatures.request.image">
+                                        <div class="flex flex-col items-center justify-center h-full">
+                                            <img :src="activeTicket.signatures.request.image" class="max-h-14 object-contain mb-1">
+                                            <span class="text-[10px] font-mono text-slate-600" x-text="activeTicket.signatures.request.timestamp"></span>
+                                        </div>
+                                    </template>
+                                    <template x-if="!activeTicket?.signatures.request.image">
+                                        <span class="text-slate-300 text-[10px] no-print">Belum TTD</span>
+                                    </template>
+                                    <div class="no-print mt-1">
+                                        <button @click="openSignModal('request', 'Retno Wulandari')" class="bg-slate-800 text-white px-2 py-0.5 rounded text-[10px]">✍️ TTD</button>
+                                    </div>
+                                </td>
 
-                    <!-- Acknowledged by -->
-                    <div class="p-2 sm:p-0">
-                        <p class="font-semibold mb-1">Aria Widura</p>
-                        <div class="h-20 flex items-center justify-center mb-1 bg-white relative overflow-hidden">
-                            <template x-if="activeTicket?.signatures.acknowledge.image">
-                                <img :src="activeTicket.signatures.acknowledge.image" class="max-h-full object-contain">
-                            </template>
-                            <template x-if="!activeTicket?.signatures.acknowledge.image">
-                                <span class="text-slate-300 text-[10px]" x-text="activeTicket?.signatures.request.timestamp ? 'Belum TTD' : 'Terkunci'"></span>
-                            </template>
-                        </div>
-                        <p class="text-[10px] text-slate-500 mb-1 h-4" x-text="activeTicket?.signatures.acknowledge.timestamp ? 'e-Sign: ' + activeTicket.signatures.acknowledge.timestamp : ''"></p>
-                        <button @click="openSignModal('acknowledge', 'Aria Widura')" :disabled="!activeTicket?.signatures.request.timestamp" :class="activeTicket?.signatures.request.timestamp ? 'bg-slate-800 cursor-pointer' : 'bg-slate-300 cursor-not-allowed'" class="no-print text-white px-3 py-1 rounded text-[11px] mb-2 w-full sm:w-auto">✍️ TTD Acknowledge</button>
-                        <p class="border-t border-slate-400 pt-1 font-medium">Acknowledged by</p>
-                    </div>
+                                <!-- Kolom 2: Aria Widura -->
+                                <td class="border border-slate-800 p-2 h-24 align-middle relative">
+                                    <template x-if="activeTicket?.signatures.acknowledge.image">
+                                        <div class="flex flex-col items-center justify-center h-full">
+                                            <img :src="activeTicket.signatures.acknowledge.image" class="max-h-14 object-contain mb-1">
+                                            <span class="text-[10px] font-mono text-slate-600" x-text="activeTicket.signatures.acknowledge.timestamp"></span>
+                                        </div>
+                                    </template>
+                                    <template x-if="!activeTicket?.signatures.acknowledge.image">
+                                        <span class="text-slate-300 text-[10px]" x-text="activeTicket?.signatures.request.timestamp ? 'Belum TTD' : 'Terkunci'"></span>
+                                    </template>
+                                    <div class="no-print mt-1" x-show="activeTicket?.signatures.request.timestamp">
+                                        <button @click="openSignModal('acknowledge', 'Aria Widura')" class="bg-slate-800 text-white px-2 py-0.5 rounded text-[10px]">✍️ TTD</button>
+                                    </div>
+                                </td>
 
-                    <!-- Approved by -->
-                    <div class="p-2 sm:p-0">
-                        <p class="font-semibold mb-1">Ranggana</p>
-                        <div class="h-20 flex items-center justify-center mb-1 bg-white relative overflow-hidden">
-                            <template x-if="activeTicket?.signatures.approve.image">
-                                <img :src="activeTicket.signatures.approve.image" class="max-h-full object-contain">
-                            </template>
-                            <template x-if="!activeTicket?.signatures.approve.image">
-                                <span class="text-slate-300 text-[10px]" x-text="activeTicket?.signatures.acknowledge.timestamp ? 'Belum TTD' : 'Terkunci'"></span>
-                            </template>
-                        </div>
-                        <p class="text-[10px] text-slate-500 mb-1 h-4" x-text="activeTicket?.signatures.approve.timestamp ? 'e-Sign: ' + activeTicket.signatures.approve.timestamp : ''"></p>
-                        <button @click="openSignModal('approve', 'Ranggana')" :disabled="!activeTicket?.signatures.acknowledge.timestamp" :class="activeTicket?.signatures.acknowledge.timestamp ? 'bg-slate-800 cursor-pointer' : 'bg-slate-300 cursor-not-allowed'" class="no-print text-white px-3 py-1 rounded text-[11px] mb-2 w-full sm:w-auto">✍️ TTD Approved</button>
-                        <p class="border-t border-slate-400 pt-1 font-medium">Approved by</p>
-                    </div>
+                                <!-- Kolom 3 & 4 Approval -->
+                                <template x-if="activeTicket?.approvalType === '3'">
+                                    <td class="border border-slate-800 p-2 h-24 align-middle relative">
+                                        <template x-if="activeTicket?.signatures.approve2.image">
+                                            <div class="flex flex-col items-center justify-center h-full">
+                                                <img :src="activeTicket.signatures.approve2.image" class="max-h-14 object-contain mb-1">
+                                                <span class="text-[10px] font-mono text-slate-600" x-text="activeTicket.signatures.approve2.timestamp"></span>
+                                            </div>
+                                        </template>
+                                        <template x-if="!activeTicket?.signatures.approve2.image">
+                                            <span class="text-slate-300 text-[10px]" x-text="activeTicket?.signatures.acknowledge.timestamp ? 'Belum TTD' : 'Terkunci'"></span>
+                                        </template>
+                                        <div class="no-print mt-1" x-show="activeTicket?.signatures.acknowledge.timestamp">
+                                            <button @click="openSignModal('approve2', 'Ranggana')" class="bg-slate-800 text-white px-2 py-0.5 rounded text-[10px]">✍️ TTD</button>
+                                        </div>
+                                    </td>
+                                </template>
 
+                                <template x-if="activeTicket?.approvalType === '4'">
+                                    <td class="border border-slate-800 p-2 h-24 align-middle relative">
+                                        <template x-if="activeTicket?.signatures.approve1.image">
+                                            <div class="flex flex-col items-center justify-center h-full">
+                                                <img :src="activeTicket.signatures.approve1.image" class="max-h-14 object-contain mb-1">
+                                                <span class="text-[10px] font-mono text-slate-600" x-text="activeTicket.signatures.approve1.timestamp"></span>
+                                            </div>
+                                        </template>
+                                        <template x-if="!activeTicket?.signatures.approve1.image">
+                                            <span class="text-slate-300 text-[10px]" x-text="activeTicket?.signatures.acknowledge.timestamp ? 'Belum TTD' : 'Terkunci'"></span>
+                                        </template>
+                                        <div class="no-print mt-1" x-show="activeTicket?.signatures.acknowledge.timestamp">
+                                            <button @click="openSignModal('approve1', 'Ranggana')" class="bg-slate-800 text-white px-2 py-0.5 rounded text-[10px]">✍️ TTD</button>
+                                        </div>
+                                    </td>
+                                </template>
+
+                                <template x-if="activeTicket?.approvalType === '4'">
+                                    <td class="border border-slate-800 p-2 h-24 align-middle relative">
+                                        <template x-if="activeTicket?.signatures.approve2.image">
+                                            <div class="flex flex-col items-center justify-center h-full">
+                                                <img :src="activeTicket.signatures.approve2.image" class="max-h-14 object-contain mb-1">
+                                                <span class="text-[10px] font-mono text-slate-600" x-text="activeTicket.signatures.approve2.timestamp"></span>
+                                            </div>
+                                        </template>
+                                        <template x-if="!activeTicket?.signatures.approve2.image">
+                                            <span class="text-slate-300 text-[10px]" x-text="activeTicket?.signatures.approve1.timestamp ? 'Belum TTD' : 'Terkunci'"></span>
+                                        </template>
+                                        <div class="no-print mt-1" x-show="activeTicket?.signatures.approve1.timestamp">
+                                            <button @click="openSignModal('approve2', 'Elyza')" class="bg-slate-800 text-white px-2 py-0.5 rounded text-[10px]">✍️ TTD</button>
+                                        </div>
+                                    </td>
+                                </template>
+                            </tr>
+
+                            <!-- Baris Nama & Jabatan -->
+                            <tr>
+                                <td class="border border-slate-800 p-2 font-semibold">
+                                    Retno Wulandari<br><span class="font-normal text-[11px] text-slate-600">TL Retention</span>
+                                </td>
+                                <td class="border border-slate-800 p-2 font-semibold">
+                                    Aria Widura<br><span class="font-normal text-[11px] text-slate-600">Unit Head Retention</span>
+                                </td>
+                                <template x-if="activeTicket?.approvalType === '3'">
+                                    <td class="border border-slate-800 p-2 font-semibold">
+                                        Ranggana<br><span class="font-normal text-[11px] text-slate-600">Dept. Head</span>
+                                    </td>
+                                </template>
+                                <template x-if="activeTicket?.approvalType === '4'">
+                                    <td class="border border-slate-800 p-2 font-semibold">
+                                        Ranggana<br><span class="font-normal text-[11px] text-slate-600">Dept. Head</span>
+                                    </td>
+                                </template>
+                                <template x-if="activeTicket?.approvalType === '4'">
+                                    <td class="border border-slate-800 p-2 font-semibold">
+                                        Elyza<br><span class="font-normal text-[11px] text-slate-600">Manager Operasional</span>
+                                    </td>
+                                </template>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
+
             </div>
         </div>
 
@@ -219,14 +305,21 @@
         <div class="bg-white rounded-xl max-w-xl w-full p-4 sm:p-6 shadow-xl max-h-[90vh] overflow-y-auto space-y-4">
             <h3 class="text-base sm:text-lg font-bold" x-text="isEditTicketMode ? 'Edit Tiket Bulky' : 'Buat Ticket Bulky Baru'"></h3>
             
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                    <label class="block text-xs font-semibold mb-1">No. Ticket Bulky (Auto)</label>
+                    <label class="block text-xs font-semibold mb-1">No. Ticket Bulky</label>
                     <input type="text" x-model="newTicket.ticketNumber" readonly class="w-full border bg-slate-100 rounded-lg p-2 text-xs font-mono text-blue-700 font-bold">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold mb-1">Tanggal</label>
                     <input type="date" x-model="newTicket.requestDate" class="w-full border rounded-lg p-2 text-xs">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1">Tipe Approval</label>
+                    <select x-model="newTicket.approvalType" class="w-full border rounded-lg p-2 text-xs font-semibold bg-slate-50">
+                        <option value="3">3 Approval</option>
+                        <option value="4">4 Approval (+ Elyza)</option>
+                    </select>
                 </div>
             </div>
 
@@ -368,8 +461,22 @@
                 tickets: [],
                 activeTicket: null,
 
-                newTicket: { ticketNumber: '', requestDate: '', items: [] },
+                newTicket: { ticketNumber: '', requestDate: '', approvalType: '3', items: [] },
                 tempItem: { fullName: '', caseType: '', username: '', ticketNumberItem: '', subject: '', note: '', adjustment: '' },
+
+                formatDateDisplay(dateString) {
+                    if (!dateString) return '';
+                    let d = new Date(dateString);
+                    if (isNaN(d.getTime())) {
+                        // Fallback jika string format teks murni atau custom
+                        return dateString;
+                    }
+                    let day = String(d.getDate()).padStart(2, '0');
+                    let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                    let monthStr = months[d.getMonth()];
+                    let yearStr = d.getFullYear();
+                    return `${day}-${monthStr}-${yearStr}`;
+                },
 
                 async fetchData() {
                     this.isLoading = true;
@@ -416,6 +523,7 @@
                     this.newTicket = {
                         ticketNumber: this.generateAutoTicketNumber(),
                         requestDate: new Date().toISOString().split('T')[0],
+                        approvalType: '3',
                         items: []
                     };
                     this.resetTempItem();
@@ -425,6 +533,7 @@
                 openModalEditTicket(ticket) {
                     this.isEditTicketMode = true;
                     this.newTicket = JSON.parse(JSON.stringify(ticket));
+                    if (!this.newTicket.approvalType) this.newTicket.approvalType = '3';
                     this.resetTempItem();
                     this.isModalCreateOpen = true;
                 },
@@ -461,7 +570,8 @@
                     let existingSignatures = {
                         request: { image: null, timestamp: null },
                         acknowledge: { image: null, timestamp: null },
-                        approve: { image: null, timestamp: null }
+                        approve1: { image: null, timestamp: null },
+                        approve2: { image: null, timestamp: null }
                     };
 
                     if (this.isEditTicketMode) {
@@ -474,6 +584,7 @@
                     let payloadTicket = {
                         ticketNumber: this.newTicket.ticketNumber,
                         requestDate: this.newTicket.requestDate,
+                        approvalType: this.newTicket.approvalType,
                         status: this.isEditTicketMode ? this.newTicket.status : 'Progress',
                         items: this.newTicket.items,
                         signatures: existingSignatures
@@ -502,13 +613,34 @@
 
                 openDetail(ticket) {
                     this.activeTicket = ticket;
+                    if (!this.activeTicket.approvalType) this.activeTicket.approvalType = '3';
+                    if (!this.activeTicket.signatures.approve1) {
+                        this.activeTicket.signatures.approve1 = { image: null, timestamp: null };
+                    }
+                    if (!this.activeTicket.signatures.approve2) {
+                        this.activeTicket.signatures.approve2 = this.activeTicket.signatures.approve || { image: null, timestamp: null };
+                    }
                     this.currentView = 'detail';
+                },
+
+                get canSignRanggana() {
+                    if (!this.activeTicket) return false;
+                    let s = this.activeTicket.signatures;
+                    if (this.activeTicket.approvalType === '4') {
+                        return s.acknowledge.image && s.approve1.image;
+                    } else {
+                        return s.acknowledge.image;
+                    }
                 },
 
                 get isAllSigned() {
                     if (!this.activeTicket) return false;
                     let s = this.activeTicket.signatures;
-                    return s.request.image && s.acknowledge.image && s.approve.image;
+                    if (this.activeTicket.approvalType === '4') {
+                        return s.request.image && s.acknowledge.image && s.approve1.image && s.approve2.image;
+                    } else {
+                        return s.request.image && s.acknowledge.image && s.approve2.image;
+                    }
                 },
 
                 openSignModal(role, name) {
@@ -603,16 +735,29 @@
                         return;
                     }
 
+                    // Format tanggal e-sign DD-MMM-YYYY
                     let now = new Date();
-                    let timestamp = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+                    let day = String(now.getDate()).padStart(2, '0');
+                    let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                    let monthStr = months[now.getMonth()];
+                    let yearStr = now.getFullYear();
+                    let timestamp = `${day}-${monthStr}-${yearStr}`;
 
                     this.activeTicket.signatures[this.currentSignRole] = {
                         image: finalImage,
                         timestamp: timestamp
                     };
 
-                    if (this.currentSignRole === 'request') this.activeTicket.status = 'Approved 1';
-                    else if (this.currentSignRole === 'acknowledge') this.activeTicket.status = 'Final Approved';
+                    if (this.activeTicket.approvalType === '4') {
+                        if (this.currentSignRole === 'request') this.activeTicket.status = 'Approved 1';
+                        else if (this.currentSignRole === 'acknowledge') this.activeTicket.status = 'Approved 2';
+                        else if (this.currentSignRole === 'approve1') this.activeTicket.status = 'Approved 3';
+                        else if (this.currentSignRole === 'approve2') this.activeTicket.status = 'Final Approved';
+                    } else {
+                        if (this.currentSignRole === 'request') this.activeTicket.status = 'Approved 1';
+                        else if (this.currentSignRole === 'acknowledge') this.activeTicket.status = 'Approved 2';
+                        else if (this.currentSignRole === 'approve2') this.activeTicket.status = 'Final Approved';
+                    }
 
                     this.isLoading = true;
                     try {
@@ -639,7 +784,7 @@
                     this.activeTicket.status = 'Finish';
                     
                     try {
-                        await fetch(APPS_SCRIPT_URL, {
+                        let res = await fetch(APPS_SCRIPT_URL, {
                             method: 'POST',
                             body: JSON.stringify({ action: 'updateTicket', ticket: this.activeTicket })
                         });
