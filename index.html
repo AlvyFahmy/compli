@@ -73,7 +73,7 @@
                             <template x-for="ticket in filteredTickets" :key="ticket.ticketNumber">
                                 <tr class="border-t border-slate-200 hover:bg-slate-50">
                                     <td class="p-3 font-mono font-bold text-blue-700" x-text="ticket.ticketNumber"></td>
-                                    <td class="p-3 text-center" x-text="formatDateDisplay(ticket.requestDate)"></td>
+                                    <td class="p-3 text-center" x-text="ticket.requestDate"></td>
                                     <td class="p-3 text-center font-semibold text-slate-600" x-text="ticket.approvalType + ' Approval'"></td>
                                     <td class="p-3 text-center font-semibold" x-text="ticket.items.length + ' Orang'"></td>
                                     <td class="p-3 text-right font-semibold" x-text="formatRupiah(ticketTotal(ticket))"></td>
@@ -124,7 +124,7 @@
                     <div class="space-y-1">
                         <p><span class="font-semibold inline-block w-24">To</span> : Billing & Collection</p>
                         <p><span class="font-semibold inline-block w-24">From</span> : CRT</p>
-                        <p><span class="font-semibold inline-block w-24">Date</span> : <span x-text="formatDateDisplay(activeTicket?.requestDate)"></span></p>
+                        <p><span class="font-semibold inline-block w-24">Date</span> : <span x-text="activeTicket?.requestDate"></span></p>
                     </div>
                     <div class="no-print text-left sm:text-right">
                         <span class="inline-block bg-slate-100 text-slate-800 text-xs px-3 py-1 rounded-full font-bold" x-text="activeTicket?.approvalType + ' Approval Mode'"></span>
@@ -312,7 +312,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-semibold mb-1">Tanggal</label>
-                    <input type="date" x-model="newTicket.requestDate" class="w-full border rounded-lg p-2 text-xs">
+                    <input type="date" x-model="newTicket.requestDateInput" @change="updateFormattedDate($event)" class="w-full border rounded-lg p-2 text-xs">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold mb-1">Tipe Approval</label>
@@ -461,21 +461,24 @@
                 tickets: [],
                 activeTicket: null,
 
-                newTicket: { ticketNumber: '', requestDate: '', approvalType: '3', items: [] },
+                newTicket: { ticketNumber: '', requestDate: '', requestDateInput: '', approvalType: '3', items: [] },
                 tempItem: { fullName: '', caseType: '', username: '', ticketNumberItem: '', subject: '', note: '', adjustment: '' },
 
-                formatDateDisplay(dateString) {
-                    if (!dateString) return '';
-                    let d = new Date(dateString);
-                    if (isNaN(d.getTime())) {
-                        // Fallback jika string format teks murni atau custom
-                        return dateString;
-                    }
+                formatToDDMMMYYYY(dateObj) {
+                    let d = new Date(dateObj);
+                    if (isNaN(d.getTime())) return dateObj;
                     let day = String(d.getDate()).padStart(2, '0');
                     let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
                     let monthStr = months[d.getMonth()];
-                    let yearStr = d.getFullYear();
+                    let yearStr = String(d.getFullYear()).slice(-2);
                     return `${day}-${monthStr}-${yearStr}`;
+                },
+
+                updateFormattedDate(event) {
+                    let val = event.target.value;
+                    if (val) {
+                        this.newTicket.requestDate = this.formatToDDMMMYYYY(val);
+                    }
                 },
 
                 async fetchData() {
@@ -484,7 +487,12 @@
                         let res = await fetch(APPS_SCRIPT_URL);
                         let json = await res.json();
                         if (json.status === 'success') {
-                            this.tickets = json.tickets || [];
+                            this.tickets = (json.tickets || []).map(t => {
+                                if (t.requestDate && t.requestDate.includes('GMT')) {
+                                    t.requestDate = this.formatToDDMMMYYYY(t.requestDate);
+                                }
+                                return t;
+                            });
                             if (this.activeTicket) {
                                 let updated = this.tickets.find(t => t.ticketNumber === this.activeTicket.ticketNumber);
                                 if (updated) this.activeTicket = updated;
@@ -520,9 +528,12 @@
 
                 openModalCreate() {
                     this.isEditTicketMode = false;
+                    let today = new Date();
+                    let formattedToday = this.formatToDDMMMYYYY(today);
                     this.newTicket = {
                         ticketNumber: this.generateAutoTicketNumber(),
-                        requestDate: new Date().toISOString().split('T')[0],
+                        requestDate: formattedToday,
+                        requestDateInput: today.toISOString().split('T')[0],
                         approvalType: '3',
                         items: []
                     };
@@ -534,6 +545,7 @@
                     this.isEditTicketMode = true;
                     this.newTicket = JSON.parse(JSON.stringify(ticket));
                     if (!this.newTicket.approvalType) this.newTicket.approvalType = '3';
+                    this.newTicket.requestDateInput = new Date().toISOString().split('T')[0];
                     this.resetTempItem();
                     this.isModalCreateOpen = true;
                 },
@@ -735,13 +747,7 @@
                         return;
                     }
 
-                    // Format tanggal e-sign DD-MMM-YYYY
-                    let now = new Date();
-                    let day = String(now.getDate()).padStart(2, '0');
-                    let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-                    let monthStr = months[now.getMonth()];
-                    let yearStr = now.getFullYear();
-                    let timestamp = `${day}-${monthStr}-${yearStr}`;
+                    let timestamp = this.formatToDDMMMYYYY(new Date());
 
                     this.activeTicket.signatures[this.currentSignRole] = {
                         image: finalImage,
